@@ -110,7 +110,7 @@ const rooms = new Map();
 const MAX_PLAYERS = 12;
 const MAX_TEXT = 320;
 const MAX_IMAGE_LENGTH = 1_500_000;
-const MODES = new Set(['classic', 'draw', 'phrase', 'sprint']);
+const MODES = new Set(['classic', 'draw', 'phrase', 'sprint', 'chaos']);
 
 const OFFLINE_IMAGE = 'data:image/svg+xml;base64,' + Buffer.from(
   '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="550" viewBox="0 0 900 550"><rect width="900" height="550" fill="#fffaf3"/><path d="M270 280 Q450 100 630 280 Q450 460 270 280Z" fill="#f1e5d4" stroke="#b59b80" stroke-width="9"/><circle cx="405" cy="260" r="22" fill="#8f7861"/><circle cx="495" cy="260" r="22" fill="#8f7861"/><path d="M410 330 Q450 365 490 330" fill="none" stroke="#8f7861" stroke-width="10" stroke-linecap="round"/><text x="450" y="430" text-anchor="middle" font-family="Arial" font-size="27" fill="#8f7861">disegno non inviato</text></svg>'
@@ -160,6 +160,15 @@ function migrateHost(room) {
   if (nextHost) room.hostId = nextHost.id;
 }
 
+const CHAOS_TWISTS = [
+  'JOLLY: usa almeno un dettaglio minuscolo che cambia tutta la scena.',
+  'JOLLY: rendi tutto esageratamente drammatico.',
+  'JOLLY: aggiungi un elemento completamente fuori contesto.',
+  'JOLLY: trasforma la scena in qualcosa di tenerissimo.',
+  'JOLLY: fai sembrare tutto un film d’azione.',
+  'JOLLY: inserisci un piccolo imprevisto assurdo.'
+];
+
 function taskFor(room, player) {
   const game = room.game;
   if (game.phase === 'intro') {
@@ -183,11 +192,13 @@ function taskFor(room, player) {
   if (game.mode === 'draw') type = 'draw';
   else if (game.mode === 'phrase') type = 'text';
   else type = last.type === 'text' ? 'draw' : 'text';
+  const basePrompt = type === 'draw'
+    ? (game.mode === 'draw' ? 'Guarda il disegno precedente e crea la tua versione.' : 'Disegna quello che immagini leggendo la frase.')
+    : (game.mode === 'phrase' ? 'Continua la storia con una nuova frase.' : 'Guarda il disegno e scrivi cosa pensi rappresenti.');
+  const twist = game.mode === 'chaos' ? CHAOS_TWISTS[(game.round - 1) % CHAOS_TWISTS.length] : '';
   return {
     type,
-    prompt: type === 'draw'
-      ? (game.mode === 'draw' ? 'Guarda il disegno precedente e crea la tua versione.' : 'Disegna quello che immagini leggendo la frase.')
-      : (game.mode === 'phrase' ? 'Continua la storia con una nuova frase.' : 'Guarda il disegno e scrivi cosa pensi rappresenti.'),
+    prompt: twist ? `${basePrompt}\n\n🎲 ${twist}` : basePrompt,
     item: { type: last.type, content: last.content, authorName: last.authorName }
   };
 }
