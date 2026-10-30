@@ -8,7 +8,8 @@ const modeDescriptions = {
   draw: 'Tutti disegnano: ogni artista riceve il disegno precedente e lo reinterpreta a modo suo.',
   phrase: 'Solo parole! La storia passa di mano in mano e diventa sempre più assurda.',
   sprint: 'La modalità classica, ma con soli 40 secondi a turno. Niente ripensamenti!',
-  chaos: 'Telefono senza fili + imprevisti: a ogni turno una regola-jolly diversa da rispettare. Il caos è garantito!'
+  chaos: 'Telefono senza fili + imprevisti: a ogni turno una regola-jolly diversa da rispettare. Il caos è garantito!',
+  emoji: 'Una storia fatta solo di emoji: ogni giocatore interpreta i simboli e aggiunge esattamente 5 emoji. Zero parole, fantasia al massimo!'
 };
 let socket = null;
 let pendingAction = null;
@@ -569,7 +570,7 @@ function renderReveal(state) {
   resultView = 'album';
   resultFocus = false;
   const game = state.game;
-  const modeNames = { classic: 'Telefono classico', draw: 'Solo disegni', phrase: 'Solo frasi', sprint: 'Modalità sprint', chaos: 'Caos totale' };
+  const modeNames = { classic: 'Telefono classico', draw: 'Solo disegni', phrase: 'Solo frasi', sprint: 'Modalità sprint', chaos: 'Caos totale', emoji: 'Storia a emoji' };
   $('#reveal-content').innerHTML = `
     <header class="reveal-heading"><div class="eyebrow">✳ PARTITA COMPLETATA · ${escapeHtml(modeNames[game.mode] || 'Party game')}</div><h1>È uscito un <span>capolavoro?</span></h1><p>Rivivi ogni catena in cinque modi: album, presentazione automatica, passaggi, cronologia e confronto.</p></header>
     <div class="result-toolbar">
