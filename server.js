@@ -332,7 +332,14 @@ wss.on('connection', (ws) => {
     const action = msg.action;
 
     // Lightweight app-level heartbeat for browser clients behind idle-sleeping hosts.
-    if (action === 'heartbeat') return;
+    if (action === 'heartbeat') {
+      const heartbeatRoom = getRoom(ws);
+      const heartbeatPlayer = heartbeatRoom && getPlayer(heartbeatRoom, ws.playerId);
+      if (heartbeatRoom && heartbeatPlayer && heartbeatPlayer.connected && heartbeatPlayer.ws === ws) {
+        send(ws, playerState(heartbeatRoom, heartbeatPlayer));
+      }
+      return;
+    }
 
     if (action === 'create') {
       const playerId = String(msg.playerId || '').slice(0, 80);
