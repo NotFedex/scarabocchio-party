@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff7ec">
+  <meta name="description" content="Un party game di frasi, disegni e risate da giocare con gli amici.">
+  <title>Scarabocchio Party — Disegna, passa, ridi!</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="paper-noise" aria-hidden="true"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <main id="app" class="app-shell">
+    <section id="home-screen" class="screen home-screen">
+      <nav class="top-nav">
+        <a class="brand" href="/" aria-label="Scarabocchio Party home">
+          <span class="brand-mark"><span></span><span></span><span></span></span>
+          <span>scarabocchio<span class="brand-light">party</span></span>
+        </a>
+        <span class="nav-note"><span class="live-dot"></span> IL PARTY GAME DEI TUOI AMICI</span>
+      </nav>
+
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="eyebrow-star">✳</span> PREPARA I PENNARELLI</div>
+          <h1>Disegna.<br><span>Passa.</span> Ridi.</h1>
+          <p class="hero-subtitle">Una frase diventa un disegno, un disegno diventa un mistero. Gioca direttamente dal browser: nessun programma da installare.</p>
+          <div class="hero-stamps">
+            <span>🎨 Disegni improbabili</span>
+            <span>💬 Frasi senza senso</span>
+            <span>👯 Stanze private con gli amici</span><span>🌐 Solo browser · zero installazioni</span>
+          </div>
+        </div>
+        <div class="hero-art" aria-label="Illustrazione di un telefono senza fili disegnato a mano">
+          <div class="art-spark spark-one">✦</div><div class="art-spark spark-two">✳</div>
+          <div class="art-card card-back"><span class="scribble scribble-one">?</span></div>
+          <div class="art-card card-middle"><div class="face face-silly"><i></i><b></b><em></em></div><span class="card-caption">CHE COS'È?!</span></div>
+          <div class="art-card card-front"><div class="sun-doodle"><span></span></div><div class="hill-doodle"></div><span class="card-caption">CAPOLAVORO</span></div>
+          <div class="art-pencil">✎</div>
+          <div class="art-note">100% CAOS<br>CREATIVO</div>
+        </div>
+      </div>
+
+      <div class="home-panels">
+        <section class="panel create-panel">
+          <div class="panel-heading"><span class="panel-icon icon-create">✦</span><div><h2>Crea una stanza</h2><p>Diventi tu il capogioco.</p></div></div>
+          <label class="field-label" for="create-name">IL TUO NICKNAME</label>
+          <input id="create-name" class="text-input" maxlength="18" placeholder="Es. Picasso99" autocomplete="nickname">
+          <button id="create-button" class="button button-primary button-full"><span>Crea la partita</span><span class="button-arrow">↗</span></button>
+          <div class="panel-footnote"><span>🔒</span> Stanza privata con codice d'invito</div>
+        </section>
+
+        <section class="panel join-panel">
+          <div class="panel-heading"><span class="panel-icon icon-join">↗</span><div><h2>Hai un codice?</h2><p>Raggiungi i tuoi amici.</p></div></div>
+          <label class="field-label" for="join-name">IL TUO NICKNAME</label>
+          <input id="join-name" class="text-input" maxlength="18" placeholder="Come ti chiami?" autocomplete="nickname">
+          <label class="field-label code-label" for="join-code">CODICE STANZA</label>
+          <input id="join-code" class="text-input code-input" maxlength="5" placeholder="ABCDE" autocomplete="off" spellcheck="false">
+          <button id="join-button" class="button button-dark button-full"><span>Entra nella stanza</span><span class="button-arrow">→</span></button>
+        </section>
+      </div>
+      <footer class="home-footer"><span>FATTO PER GLI AMICI, NON PER I CAPOLAVORI.</span><span>SCARABOCCHIO PARTY © 2026</span></footer>
+    </section>
+
+    <section id="lobby-screen" class="screen hidden">
+      <nav class="top-nav inner-nav">
+        <a class="brand" href="/" id="brand-home"><span class="brand-mark"><span></span><span></span><span></span></span><span>scarabocchio<span class="brand-light">party</span></span></a>
+        <button id="leave-lobby" class="subtle-button">← Esci dalla stanza</button>
+      </nav>
+      <div class="lobby-wrap">
+        <div class="lobby-title-row"><div><div class="eyebrow"><span class="eyebrow-star">✳</span> LA TUA SALA GIOCHI</div><h1>Raduna la <span>crew.</span></h1><p>Invita chi vuoi e preparatevi al delirio creativo.</p></div><div class="lobby-doodle">✎<span>GG!</span></div></div>
+        <div class="room-share-card">
+          <div><span class="field-label">CODICE STANZA</span><div id="room-code" class="room-code">-----</div></div>
+          <div class="share-actions"><button id="copy-code" class="button button-outline">Copia codice</button><button id="copy-link" class="button button-primary">Copia link ↗</button></div>
+          <div class="share-hint">Condividi il link o il codice con i tuoi amici.</div>
+        </div>
+        <div class="lobby-columns">
+          <section class="panel players-panel"><div class="section-heading"><div><h2>Chi c'è in gioco?</h2><p id="player-count">1 giocatore nella stanza</p></div><span class="mini-counter" id="player-counter">01</span></div><div id="players-list" class="players-list"></div><div class="players-note">Puoi giocare con 2–12 persone.</div></section>
+          <section class="panel settings-panel"><div class="section-heading"><div><h2>Imposta la partita</h2><p>Scegli il tipo di caos.</p></div><span class="settings-gear">⚙</span></div>
+            <label class="field-label" for="mode-select">MODALITÀ DI GIOCO</label>
+            <select id="mode-select" class="text-input select-input">
+              <option value="classic">🎨 Telefono classico</option>
+              <option value="draw">🖍️ Solo disegni</option>
+              <option value="phrase">💬 Solo frasi</option>
+              <option value="sprint">⚡ Modalità sprint</option>
+            </select>
+            <label class="field-label" for="timer-select">TEMPO PER TURNO</label>
+            <select id="timer-select" class="text-input select-input">
+              <option value="45">45 secondi</option><option value="60">1 minuto</option><option value="90" selected>1 minuto e 30</option><option value="120">2 minuti</option>
+            </select>
+            <p class="mode-description" id="mode-description">Una frase, un disegno, una nuova frase… il telefono senza fili più caotico che ci sia.</p>
+            <button id="start-button" class="button button-primary button-full start-button"><span>Inizia a giocare</span><span class="button-arrow">✦</span></button>
+            <p class="host-note">Solo chi crea la stanza può avviare la partita.</p>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="game-screen" class="screen hidden">
+      <nav class="top-nav game-nav"><div class="brand"><span class="brand-mark"><span></span><span></span><span></span></span><span>scarabocchio<span class="brand-light">party</span></span></div><div class="game-nav-center" id="game-nav-center">TURNO 1</div><button id="game-room-code" class="room-chip">STANZA -----</button></nav>
+      <div id="game-content" class="game-content"></div>
+    </section>
+
+    <section id="reveal-screen" class="screen hidden">
+      <nav class="top-nav inner-nav"><div class="brand"><span class="brand-mark"><span></span><span></span><span></span></span><span>scarabocchio<span class="brand-light">party</span></span></div><span class="nav-note">IL GRANDE MOMENTO ✦</span></nav>
+      <div id="reveal-content" class="reveal-wrap"></div>
+    </section>
+  </main>
+  <script src="/client.js" defer></script>
+</body>
+</html>
