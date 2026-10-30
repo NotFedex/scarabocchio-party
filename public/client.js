@@ -179,6 +179,10 @@ function startTaskTimer(stamp, seconds) {
   timerTotal = seconds;
   timerRemaining = seconds;
   autoSubmitting = false;
+  if (seconds <= 0) {
+    updateTimerDisplay();
+    return;
+  }
   timerInterval = setInterval(() => {
     timerRemaining = Math.max(0, timerRemaining - 1);
     updateTimerDisplay();
@@ -197,8 +201,8 @@ function updateTimerDisplay() {
   if (!pill) return;
   const mins = Math.floor(timerRemaining / 60);
   const secs = timerRemaining % 60;
-  pill.textContent = `${mins}:${String(secs).padStart(2, '0')}`;
-  pill.classList.toggle('urgent', timerRemaining <= 10);
+  pill.textContent = timerTotal === 0 ? '∞ TEMPO ILLIMITATO' : `${mins}:${String(secs).padStart(2, '0')}`;
+  pill.classList.toggle('urgent', timerTotal > 0 && timerRemaining <= 10);
   const fill = $('#progress-fill');
   if (fill && timerTotal) {
     const timeProgress = Math.max(0, timerRemaining / timerTotal) * 100;
@@ -259,7 +263,7 @@ function renderGame(state) {
     : drawingAreaHtml();
 
   $('#game-content').innerHTML = `
-    <div class="game-status-row"><span class="round-label">TURNO ${displayRound} DI ${totalTurns} · <span id="turn-submitted-count">${game.submitted} / ${game.total} consegnati</span></span><span class="timer-pill" id="timer-pill">${formatTime(game.timer)}</span></div>
+    <div class="game-status-row"><span class="round-label">TURNO ${displayRound} DI ${totalTurns} · <span id="turn-submitted-count">${game.submitted} / ${game.total} consegnati</span></span><span class="timer-pill" id="timer-pill">${game.timer === 0 ? '∞ TEMPO ILLIMITATO' : formatTime(game.timer)}</span></div>
     <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:${progressWidth}%"></div></div>
     <section class="task-card">
       <div class="task-card-top"><span class="task-kicker">${typeLabel}</span><span class="task-badge">${badge}</span></div>
