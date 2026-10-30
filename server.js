@@ -406,7 +406,7 @@ wss.on('connection', (ws) => {
       if (player.id !== room.hostId || room.game) return error(ws, 'Solo il creatore può cambiare le impostazioni nella lobby.');
       if (MODES.has(msg.mode)) room.settings.mode = msg.mode;
       const timer = Number(msg.timer);
-      if ([45, 60, 90, 120].includes(timer)) room.settings.timer = timer;
+      if ([0, 45, 60, 90, 120].includes(timer)) room.settings.timer = timer;
       return broadcast(room);
     }
 
