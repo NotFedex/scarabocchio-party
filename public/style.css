@@ -140,3 +140,6 @@ body{background:radial-gradient(ellipse at 12% 8%,#fff0e8 0,transparent 34%),rad
  .player-item{padding:11px}.room-code{font-size:29px;letter-spacing:6px}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+.bot-button { margin-top: 16px; }
+.bot-button:disabled { opacity: .45; cursor: not-allowed; }
