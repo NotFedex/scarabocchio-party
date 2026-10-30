@@ -242,6 +242,39 @@ function broadcast(room) {
   for (const player of room.players) send(player.ws, playerState(room, player));
 }
 
+function botDrawing(name, prompt) {
+  const safe = String(name).replace(/[<>&"]/g, '');
+  const caption = String(prompt).replace(/[<>&"]/g, '').slice(0, 70);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="550"><rect width="900" height="550" fill="#fffaf3"/><path d="M180 390 Q300 120 450 300 T720 250" fill="none" stroke="#ed6c53" stroke-width="18" stroke-linecap="round"/><circle cx="450" cy="230" r="85" fill="#ffd66b" stroke="#25231f" stroke-width="10"/><circle cx="420" cy="215" r="9"/><circle cx="480" cy="215" r="9"/><path d="M420 260 Q450 285 480 260" fill="none" stroke="#25231f" stroke-width="8" stroke-linecap="round"/><text x="450" y="475" text-anchor="middle" font-family="Arial" font-size="30" fill="#25231f">${safe}: ${caption}</text></svg>`;
+  return 'data:image/svg+xml;base64,' + Buffer.from(svg).toString('base64');
+}
+
+function fillBotSubmissions(room) {
+  const game = room.game;
+  if (!game || game.phase === 'reveal') return;
+  for (const bot of room.players.filter(player => player.isBot)) {
+    if (game.submissions[bot.id]) continue;
+    const task = taskFor(room, bot);
+    const previous = task.item?.content || '';
+    const phrases = [
+      'Un pinguino astronauta ha perso le chiavi sulla Luna.',
+      'Un cactus organizza una festa a sorpresa per un robot.',
+      'Un gatto detective indaga su una pizza scomparsa.',
+      'Un dinosauro impara a usare il monopattino.',
+      'Una banana sogna di diventare una rockstar.'
+    ];
+    const index = (game.round + room.players.indexOf(bot)) % phrases.length;
+    const content = task.type === 'draw'
+      ? botDrawing(bot.name, previous ? 'reinterpretazione' : 'idea originale')
+      : game.mode === 'emoji'
+        ? ['🐧🚀🌙🔑✨','🌵🎉🤖🎂🎈','🐱🕵️🍕❓🔍','🦖🛴💨🌈😂','🍌🎸🎤⭐🎶'][index]
+        : phrases[index];
+    game.submissions[bot.id] = {
+      type: task.type, content, authorId: bot.id, authorName: bot.name, strokes: []
+    };
+  }
+}
+
 function addOfflineSubmissions(room) {
   const game = room.game;
   if (!game || game.phase === 'reveal') return;
@@ -272,6 +305,7 @@ function completeIfReady(room) {
     game.phase = 'playing';
     game.round = 1;
     game.submissions = {};
+    fillBotSubmissions(room);
     addOfflineSubmissions(room);
     completeIfReady(room);
     return;
@@ -291,6 +325,7 @@ function completeIfReady(room) {
   }
   game.round += 1;
   game.submissions = {};
+  fillBotSubmissions(room);
   addOfflineSubmissions(room);
   completeIfReady(room);
 }
@@ -410,6 +445,16 @@ wss.on('connection', (ws) => {
       return broadcast(room);
     }
 
+    if (action === 'addBot') {
+      if (player.id !== room.hostId || room.game) return error(ws, 'Solo il creatore può aggiungere bot nella lobby.');
+      if (room.players.length >= MAX_PLAYERS) return error(ws, 'La stanza è piena: massimo 12 partecipanti.');
+      const botNames = ['Pablo Bot', 'Pixel', 'Scarabot', 'Doodle', 'Mister X', 'Gommino', 'Picasso Jr.', 'Emoji Boy', 'Pennellino', 'Cervellobot', 'Bobo'];
+      const used = new Set(room.players.map(p => p.name));
+      const name = botNames.find(candidate => !used.has(candidate)) || `Bot ${room.players.filter(p => p.isBot).length + 1}`;
+      room.players.push({ id: `bot-${crypto.randomUUID()}`, name, connected: true, ws: null, isBot: true });
+      return broadcast(room);
+    }
+
     if (action === 'start') {
       if (player.id !== room.hostId) return error(ws, 'Solo il creatore può avviare la partita.');
       const connected = room.players.filter(p => p.connected);
@@ -421,6 +466,8 @@ wss.on('connection', (ws) => {
         books: room.players.map(p => ({ ownerId: p.id, ownerName: p.name, entries: [] })),
         submissions: {},
       };
+      fillBotSubmissions(room);
+      completeIfReady(room);
       return broadcast(room);
     }
 
