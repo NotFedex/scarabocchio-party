@@ -110,7 +110,7 @@ const rooms = new Map();
 const MAX_PLAYERS = 12;
 const MAX_TEXT = 320;
 const MAX_IMAGE_LENGTH = 1_500_000;
-const MODES = new Set(['classic', 'draw', 'phrase', 'sprint', 'chaos']);
+const MODES = new Set(['classic', 'draw', 'phrase', 'sprint', 'chaos', 'emoji']);
 
 const OFFLINE_IMAGE = 'data:image/svg+xml;base64,' + Buffer.from(
   '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="550" viewBox="0 0 900 550"><rect width="900" height="550" fill="#fffaf3"/><path d="M270 280 Q450 100 630 280 Q450 460 270 280Z" fill="#f1e5d4" stroke="#b59b80" stroke-width="9"/><circle cx="405" cy="260" r="22" fill="#8f7861"/><circle cx="495" cy="260" r="22" fill="#8f7861"/><path d="M410 330 Q450 365 490 330" fill="none" stroke="#8f7861" stroke-width="10" stroke-linecap="round"/><text x="450" y="430" text-anchor="middle" font-family="Arial" font-size="27" fill="#8f7861">disegno non inviato</text></svg>'
@@ -177,8 +177,10 @@ function taskFor(room, player) {
       type,
       prompt: type === 'draw'
         ? 'Disegna qualcosa di buffo: sarà il primo anello della catena.'
-        : game.mode === 'phrase'
-          ? 'Inventa una frase assurda per iniziare la catena.'
+        : game.mode === 'emoji'
+          ? 'Inizia una storia usando ESATTAMENTE 5 emoji. Niente parole!'
+          : game.mode === 'phrase'
+            ? 'Inventa una frase assurda per iniziare la catena.'
           : 'Scrivi una frase da far interpretare agli altri.',
       item: null
     };
@@ -190,11 +192,13 @@ function taskFor(room, player) {
   const last = book.entries[book.entries.length - 1];
   let type;
   if (game.mode === 'draw') type = 'draw';
-  else if (game.mode === 'phrase') type = 'text';
+  else if (game.mode === 'phrase' || game.mode === 'emoji') type = 'text';
   else type = last.type === 'text' ? 'draw' : 'text';
-  const basePrompt = type === 'draw'
-    ? (game.mode === 'draw' ? 'Guarda il disegno precedente e crea la tua versione.' : 'Disegna quello che immagini leggendo la frase.')
-    : (game.mode === 'phrase' ? 'Continua la storia con una nuova frase.' : 'Guarda il disegno e scrivi cosa pensi rappresenti.');
+  const basePrompt = game.mode === 'emoji'
+    ? 'Interpreta le emoji ricevute e continua la storia usando ESATTAMENTE 5 emoji. Niente parole!'
+    : type === 'draw'
+      ? (game.mode === 'draw' ? 'Guarda il disegno precedente e crea la tua versione.' : 'Disegna quello che immagini leggendo la frase.')
+      : (game.mode === 'phrase' ? 'Continua la storia con una nuova frase.' : 'Guarda il disegno e scrivi cosa pensi rappresenti.');
   const twist = game.mode === 'chaos' ? CHAOS_TWISTS[(game.round - 1) % CHAOS_TWISTS.length] : '';
   return {
     type,
