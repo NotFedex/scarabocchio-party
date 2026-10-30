@@ -37,6 +37,7 @@ let currentCanvas = null;
 let currentContext = null;
 let autoSubmitting = false;
 let intentionalClose = false;
+let reconnectTimer = null;
 
 // Keeps connected multiplayer sessions active on hosts that idle-spin services down.
 setInterval(() => {
@@ -98,8 +99,17 @@ function connectAndSend(payload) {
     }
     if (message.type === 'state') handleState(message);
   });
+  const thisSocket = socket;
   socket.addEventListener('close', () => {
-    if (!intentionalClose && currentState) showToast('Connessione interrotta. Ricarica la pagina per rientrare.');
+    if (socket !== thisSocket || intentionalClose || !currentState?.room?.code) return;
+    showToast('Connessione persa: provo a rientrare nella stanza…');
+    clearTimeout(reconnectTimer);
+    reconnectTimer = setTimeout(() => {
+      if (socket !== thisSocket || intentionalClose || !currentState?.room?.code) return;
+      const me = currentState.players?.find(p => p.id === playerId);
+      if (!me) return;
+      connectAndSend({ action: 'join', code: currentState.room.code, playerId, name: me.name });
+    }, 1200);
   });
   socket.addEventListener('error', () => showToast('Non riesco a collegarmi al server della partita.'));
 }
@@ -141,7 +151,7 @@ function renderLobby(state) {
   $('#mode-description').textContent = modeDescriptions[state.room.settings.mode] || modeDescriptions.classic;
   $('#mode-select').disabled = !state.you.isHost;
   $('#timer-select').disabled = !state.you.isHost;
-  $('#start-button').disabled = !state.you.isHost || state.players.filter(p => p.connected).length < 2;
+  $('#start-button').disabled = !state.you.isHost || state.players.length < 2;
   $('#start-button').innerHTML = state.you.isHost ? '<span>Inizia a giocare</span><span class="button-arrow">✦</span>' : '<span>Attendi il creatore</span><span class="button-arrow">…</span>';
   const connected = state.players.filter(p => p.connected).length;
   $('#player-count').textContent = `${connected} ${connected === 1 ? 'giocatore collegato' : 'giocatori collegati'}`;
@@ -149,9 +159,11 @@ function renderLobby(state) {
   $('#players-list').innerHTML = state.players.map((player) => `
     <div class="player-item">
       <div class="avatar">${avatarFor(player.id)}</div>
-      <div style="min-width:0"><div class="player-name">${escapeHtml(player.name)}</div><div class="player-status ${player.connected ? '' : 'offline'}">${player.connected ? '● Online' : '○ Offline'}</div></div>
+      <div style="min-width:0"><div class="player-name">${escapeHtml(player.name)}</div><div class="player-status ${player.connected ? '' : 'offline'}">${player.isBot ? '🤖 BOT' : player.connected ? '● Online' : '○ Offline'}</div></div>
       ${player.isHost ? '<span class="host-tag">HOST</span>' : ''}
     </div>`).join('');
+  const addBot = $('#add-bot-button');
+  if (addBot) { addBot.disabled = !state.you.isHost || state.players.length >= 12; addBot.textContent = `+ Aggiungi bot (${Math.max(0, 12 - state.players.length)} posti)`; }
   if (!state.you.isHost) $('#start-button').title = 'Solo il creatore della stanza può iniziare';
 }
 
@@ -658,6 +670,7 @@ $('#brand-home').addEventListener('click', (event) => { event.preventDefault(); 
 $('#mode-select').addEventListener('change', () => send({ action: 'settings', mode: $('#mode-select').value, timer: Number($('#timer-select').value) }));
 $('#timer-select').addEventListener('change', () => send({ action: 'settings', mode: $('#mode-select').value, timer: Number($('#timer-select').value) }));
 $('#start-button').addEventListener('click', () => send({ action: 'start' }));
+$('#add-bot-button')?.addEventListener('click', () => send({ action: 'addBot' }));
 $('#game-room-code').addEventListener('click', () => { if (currentState) copyText(currentState.room.code, 'Codice stanza copiato!'); });
 
 const roomFromUrl = new URL(location.href).searchParams.get('room');
